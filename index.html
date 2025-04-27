@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Graph Visualization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.23.0/cytoscape.min.js"></script>
+    <style>
+      #graph-container1,
+      #graph-container2,
+      #graph-container3,
+      #graph-container4 {
+        width: 45%;
+        height: 600px;
+        border: 1px solid #ccc;
+        display: inline-block;
+        margin: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Graph Visualization (Directed and Undirected)</h1>
+    <div id="graph-container1"></div>
+    <!-- Контейнер для напрямленого графа з matrix1 -->
+    <div id="graph-container2"></div>
+    <!-- Контейнер для ненапрямленого графа з matrix1 -->
+    <div id="graph-container3"></div>
+    <!-- Контейнер для напрямленого графа з matrix2 -->
+    <div id="graph-container4"></div>
+    <!-- Контейнер для ненапрямленого графа з matrix2 -->
+
+    <!-- Підключаємо ваші JS файли -->
+    <script src="firstMatrix.js"></script>
+    <script src="secondMatrix.js"></script>
+
+    <script>
+      // Функція для конвертації матриці в елементи для Cytoscape
+      function getGraphElements(matrix, isDirected = true) {
+        const nodes = [];
+        const edges = [];
+
+        // Додаємо вузли (nodes)
+        for (let i = 0; i < matrix.length; i++) {
+          nodes.push({ data: { id: i.toString() } });
+        }
+
+        // Додаємо ребра (edges)
+        for (let i = 0; i < matrix.length; i++) {
+          for (let j = 0; j < matrix.length; j++) {
+            if (matrix[i][j] === 1) {
+              if (isDirected) {
+                // Для напрямленого графа: додаємо ребро з i до j
+                edges.push({
+                  data: { source: i.toString(), target: j.toString() },
+                });
+              } else {
+                // Для ненапрямленого графа: додаємо ребро між i та j в обидва боки
+                if (
+                  !edges.some(
+                    (edge) =>
+                      (edge.data.source === j.toString() &&
+                        edge.data.target === i.toString()) ||
+                      (edge.data.source === i.toString() &&
+                        edge.data.target === j.toString())
+                  )
+                ) {
+                  edges.push({
+                    data: { source: i.toString(), target: j.toString() },
+                  });
+                }
+              }
+            }
+          }
+        }
+
+        return { nodes, edges };
+      }
+
+      // Ініціалізуємо графи після того, як згенеровані матриці з ваших класів
+      document.addEventListener('DOMContentLoaded', function () {
+        const matrix1 = new Matrix1(10); // Приклад розміру 10 для першої матриці
+        matrix1.matrixGenerate();
+        matrix1.computeDegrees();
+
+        const matrix2 = new Matrix2(10); // Приклад розміру 10 для другої матриці
+        matrix2.matrixGenerate();
+        matrix2.computeDegrees();
+
+        // Отримуємо елементи для напрямленого графа з matrix1
+        const directedElements1 = getGraphElements(matrix1.matrix, true);
+
+        // Отримуємо елементи для ненапрямленого графа з matrix1
+        const undirectedElements1 = getGraphElements(matrix1.matrix, false);
+
+        // Отримуємо елементи для напрямленого графа з matrix2
+        const directedElements2 = getGraphElements(matrix2.matrix, true);
+
+        // Отримуємо елементи для ненапрямленого графа з matrix2
+        const undirectedElements2 = getGraphElements(matrix2.matrix, false);
+
+        // Створюємо граф для напрямленого графа з matrix1
+        const cyDirected1 = cytoscape({
+          container: document.getElementById('graph-container1'), // Контейнер для напрямленого графа з matrix1
+
+          elements: directedElements1, // Напрямлений граф
+
+          style: [
+            {
+              selector: 'node',
+              style: {
+                'background-color': '#007bff',
+                label: 'data(id)',
+                width: 20,
+                height: 20,
+              },
+            },
+            {
+              selector: 'edge',
+              style: {
+                width: 2,
+                'line-color': '#ccc',
+                'target-arrow-color': '#ccc',
+                'target-arrow-shape': 'triangle',
+              },
+            },
+          ],
+
+          layout: {
+            name: 'circle', // Використовуємо кругову розкладку
+          },
+        });
+
+        // Створюємо граф для ненапрямленого графа з matrix1
+        const cyUndirected1 = cytoscape({
+          container: document.getElementById('graph-container2'), // Контейнер для ненапрямленого графа з matrix1
+
+          elements: undirectedElements1, // Ненапрямлений граф
+
+          style: [
+            {
+              selector: 'node',
+              style: {
+                'background-color': '#007bff',
+                label: 'data(id)',
+                width: 20,
+                height: 20,
+              },
+            },
+            {
+              selector: 'edge',
+              style: {
+                width: 2,
+                'line-color': '#ccc',
+              },
+            },
+          ],
+
+          layout: {
+            name: 'circle', // Використовуємо кругову розкладку
+          },
+        });
+
+        // Створюємо граф для напрямленого графа з matrix2
+        const cyDirected2 = cytoscape({
+          container: document.getElementById('graph-container3'), // Контейнер для напрямленого графа з matrix2
+
+          elements: directedElements2, // Напрямлений граф
+
+          style: [
+            {
+              selector: 'node',
+              style: {
+                'background-color': '#007bff',
+                label: 'data(id)',
+                width: 20,
+                height: 20,
+              },
+            },
+            {
+              selector: 'edge',
+              style: {
+                width: 2,
+                'line-color': '#ccc',
+                'target-arrow-color': '#ccc',
+                'target-arrow-shape': 'triangle',
+              },
+            },
+          ],
+
+          layout: {
+            name: 'circle', // Використовуємо кругову розкладку
+          },
+        });
+
+        // Створюємо граф для ненапрямленого графа з matrix2
+        const cyUndirected2 = cytoscape({
+          container: document.getElementById('graph-container4'), // Контейнер для ненапрямленого графа з matrix2
+
+          elements: undirectedElements2, // Ненапрямлений граф
+
+          style: [
+            {
+              selector: 'node',
+              style: {
+                'background-color': '#007bff',
+                label: 'data(id)',
+                width: 20,
+                height: 20,
+              },
+            },
+            {
+              selector: 'edge',
+              style: {
+                width: 2,
+                'line-color': '#ccc',
+              },
+            },
+          ],
+
+          layout: {
+            name: 'circle', // Використовуємо кругову розкладку
+          },
+        });
+      });
+    </script>
+  </body>
+</html>
